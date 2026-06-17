@@ -2,6 +2,8 @@ name: Kontinu Sync Fasih BPS 24 Jam
 
 on:
   workflow_dispatch:
+  schedule:
+    - cron: '0 0 * * *'
 
 jobs:
   run-sync:
@@ -10,6 +12,8 @@ jobs:
     steps:
     - name: Checkout Repo
       uses: actions/checkout@v4
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Setup Python
       uses: actions/setup-python@v5
@@ -28,7 +32,7 @@ jobs:
         git config --local user.name "GitHub Actions Bot"
         git add data_output/struktur_wilayah_sulsel.json
         
-        if git diff --staged --quiet; then
+        if git diff --cached --quiet; then
           echo "Tidak ada penambahan data wilayah baru."
         else
           git commit -m "Update otomatis pohon data wilayah Sulawesi Selatan (Kecamatan/Kelurahan/SLS)"
