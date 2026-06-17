@@ -1,8 +1,6 @@
 name: Kontinu Sync Fasih BPS 24 Jam
 
 on:
-  schedule:
-    - cron: '0 0 * * *'
   workflow_dispatch:
 
 jobs:
@@ -31,7 +29,7 @@ jobs:
         git add data_output/struktur_wilayah_sulsel.json
         
         if git diff --staged --quiet; then
-          echo "Tidak ada penambahan data wilayah baru dalam 24 jam terakhir."
+          echo "Tidak ada penambahan data wilayah baru."
         else
           git commit -m "Update otomatis pohon data wilayah Sulawesi Selatan (Kecamatan/Kelurahan/SLS)"
           git push
