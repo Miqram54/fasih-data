@@ -2,8 +2,10 @@ name: Kontinu Sync Fasih BPS 24 Jam
 
 on:
   workflow_dispatch:
-  schedule:
-    - cron: '0 0 * * *'
+
+# Baris di bawah ini memaksa robot menggunakan Node.js 24 agar warning kuning hilang
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: 'true'
 
 jobs:
   run-sync:
@@ -12,8 +14,6 @@ jobs:
     steps:
     - name: Checkout Repo
       uses: actions/checkout@v4
-      with:
-        token: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Setup Python
       uses: actions/setup-python@v5
@@ -28,13 +28,16 @@ jobs:
 
     - name: Commit dan Push Perubahan ke Repositori
       run: |
+        # Menggunakan token bawaan GitHub Actions agar push diizinkan secara legal
         git config --local user.email "actions@github.com"
         git config --local user.name "GitHub Actions Bot"
+        git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git
+        
         git add data_output/struktur_wilayah_sulsel.json
         
-        if git diff --cached --quiet; then
+        if git diff --staged --quiet; then
           echo "Tidak ada penambahan data wilayah baru."
         else
           git commit -m "Update otomatis pohon data wilayah Sulawesi Selatan (Kecamatan/Kelurahan/SLS)"
-          git push
+          git push origin main
         fi
