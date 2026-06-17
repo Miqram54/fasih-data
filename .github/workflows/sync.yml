@@ -3,7 +3,6 @@ name: Kontinu Sync Fasih BPS 24 Jam
 on:
   workflow_dispatch:
 
-# Baris di bawah ini memaksa robot menggunakan Node.js 24 agar warning kuning hilang
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: 'true'
 
@@ -14,6 +13,8 @@ jobs:
     steps:
     - name: Checkout Repo
       uses: actions/checkout@v4
+      with:
+        persist-credentials: true  # Memaksa token bawaan tetap aktif selama proses push
 
     - name: Setup Python
       uses: actions/setup-python@v5
@@ -28,11 +29,11 @@ jobs:
 
     - name: Commit dan Push Perubahan ke Repositori
       run: |
-        # Menggunakan token bawaan GitHub Actions agar push diizinkan secara legal
-        git config --local user.email "actions@github.com"
-        git config --local user.name "GitHub Actions Bot"
-        git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git
+        # Mengatur identitas lokal robot secara mutlak sebelum commit
+        git config --global user.email "github-actions[bot]@users.noreply.github.com"
+        git config --global user.name "github-actions[bot]"
         
+        # Amankan target file output
         git add data_output/struktur_wilayah_sulsel.json
         
         if git diff --staged --quiet; then
