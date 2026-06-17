@@ -1,1 +1,39 @@
+name: Kontinu Sync Fasih BPS 24 Jam
 
+on:
+  schedule:
+    # Robot akan otomatis berjalan mandiri setiap 24 jam sekali (Jam 07:00 WIB)
+    - cron: '0 0 * * *'
+  workflow_dispatch: # Tombol manual run di GitHub
+
+jobs:
+  run-sync:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Repo
+      uses: actions/checkout@v4
+
+    - name: Setup Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.10'
+
+    - name: Install Dependencies
+      run: pip install requests
+
+    - name: Jalankan Sinkronisasi Data Wilayah
+      run: python sync_bps_fasih.py
+
+    - name: Commit dan Push Perubahan ke Repositori
+      run: |
+        git config --local user.email "actions@github.com"
+        git config --local user.name "GitHub Actions Bot"
+        git add data_output/struktur_wilayah_sulsel.json
+        
+        if git diff --staged --quiet; then
+          echo "Tidak ada penambahan data wilayah baru dalam 24 jam terakhir."
+        else
+          git commit -m "Update otomatis pohon data wilayah Sulawesi Selatan (Kecamatan/Kelurahan/SLS)"
+          git push
+        fi
