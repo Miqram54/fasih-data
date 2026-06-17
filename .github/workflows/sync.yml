@@ -20,12 +20,26 @@ jobs:
         python-version: '3.10'
 
     - name: Install Dependencies
-      run: pip install requests
+      run: pip install requests urllib3
 
     - name: Jalankan Sinkronisasi Data Wilayah
+      id: sync
       run: python sync_bps_fasih.py
+      continue-on-error: true
+
+    - name: Check if Data File Exists
+      id: check_file
+      run: |
+        if [ -f "data_output/struktur_wilayah_sulsel.json" ]; then
+          echo "file_exists=true" >> $GITHUB_OUTPUT
+          echo "✅ File ditemukan, siap untuk di-commit"
+        else
+          echo "file_exists=false" >> $GITHUB_OUTPUT
+          echo "❌ File tidak ditemukan, data fetch mungkin gagal"
+        fi
 
     - name: Commit dan Push Perubahan ke Repositori
+      if: steps.check_file.outputs.file_exists == 'true'
       run: |
         git config --local user.email "github-actions[bot]@users.noreply.github.com"
         git config --local user.name "github-actions[bot]"
@@ -33,9 +47,21 @@ jobs:
         git add data_output/struktur_wilayah_sulsel.json
         
         if git diff --staged --quiet; then
-          echo "Tidak ada penambahan data wilayah baru."
+          echo "ℹ️  Tidak ada penambahan data wilayah baru."
         else
           git commit -m "Update otomatis pohon data wilayah Sulawesi Selatan (Kecamatan/Kelurahan/SLS)"
-          # Kita hapus kata 'origin main' agar Git otomatis nge-push ke branch aktif Anda saat ini
           git push
+          echo "✅ Perubahan berhasil di-push ke repositori"
+        fi
+
+    - name: Report Job Status
+      if: always()
+      run: |
+        echo "📊 Status Laporan:"
+        echo "- Sync Script: ${{ steps.sync.outcome }}"
+        echo "- File Exists: ${{ steps.check_file.outputs.file_exists }}"
+        
+        if [ "${{ steps.check_file.outputs.file_exists }}" != "true" ]; then
+          echo "❌ Workflow gagal: Data tidak berhasil diambil"
+          exit 1
         fi
