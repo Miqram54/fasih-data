@@ -13,8 +13,6 @@ jobs:
     steps:
     - name: Checkout Repo
       uses: actions/checkout@v4
-      with:
-        persist-credentials: true  # Memaksa token bawaan tetap aktif selama proses push
 
     - name: Setup Python
       uses: actions/setup-python@v5
@@ -29,16 +27,15 @@ jobs:
 
     - name: Commit dan Push Perubahan ke Repositori
       run: |
-        # Mengatur identitas lokal robot secara mutlak sebelum commit
-        git config --global user.email "github-actions[bot]@users.noreply.github.com"
-        git config --global user.name "github-actions[bot]"
+        git config --local user.email "github-actions[bot]@users.noreply.github.com"
+        git config --local user.name "github-actions[bot]"
         
-        # Amankan target file output
         git add data_output/struktur_wilayah_sulsel.json
         
         if git diff --staged --quiet; then
           echo "Tidak ada penambahan data wilayah baru."
         else
           git commit -m "Update otomatis pohon data wilayah Sulawesi Selatan (Kecamatan/Kelurahan/SLS)"
-          git push origin main
+          # Kita hapus kata 'origin main' agar Git otomatis nge-push ke branch aktif Anda saat ini
+          git push
         fi
